@@ -1,10 +1,14 @@
+import { ethers } from "ethers";
 import React, {useEffect, useState} from "react";
-// import { ethers } from "ethers";
+
+import abi from "./utils/WavePortal.json";
 import './App.css';
 
 export default function App() {
   const [currentAccount, setCurrentAccount] = useState("");
-  
+  const contractAddress = "0x6109ea6bD5e066A680E96a901879e3808031B0fF"
+  const [waves, setWaves] = useState(0)
+  const contractABI = abi.abi;
   const checkIfWalletIsConnected = async () => {
     try{
       const { ethereum } = window;
@@ -45,6 +49,40 @@ export default function App() {
     }
   }
 
+  const wave = async () => {
+    try {
+      const { ethereum } = window;
+
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+        
+        let count = await wavePortalContract.getTotalWaves();
+        setWaves(count.toNumber())
+        console.log("Total wave count:", count.toNumber());
+
+         /*
+        * Execute the actual wave from your smart contract
+        */
+         const waveTxn = await wavePortalContract.wave();
+         console.log("Mining...", waveTxn.hash);
+ 
+         await waveTxn.wait();
+         console.log("Mined -- ", waveTxn.hash);
+ 
+         count = await wavePortalContract.getTotalWaves();
+
+         console.log("Retrieved total wave count...", count.toNumber());
+         setWaves(count.toNumber())
+      } else {
+        console.log("Ethereum object doesn't exist");
+      }
+    } catch (error){
+      console.log(error);
+    }
+  }
+
   useEffect(() => {
     checkIfWalletIsConnected();
   },[])
@@ -52,12 +90,6 @@ export default function App() {
    /*
       * Check if we're authorized to access the user's wallet
       */
-  
-
-
-
-  const wave = () => {
-  }
   
   return (
     <div className="mainContainer">
@@ -77,7 +109,7 @@ export default function App() {
         </div>
 
         <button className="waveButton" onClick={wave}>
-          Wave at Me
+          Wave at Me (current Waves:{ waves})
         </button>
 
 
