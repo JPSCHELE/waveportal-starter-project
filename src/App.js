@@ -6,7 +6,7 @@ import './App.css';
 
 export default function App() {
   const [currentAccount, setCurrentAccount] = useState("");
-  const contractAddress = "0xD20462Cb051Ae723a133B313deBEb504869f8990";
+  const contractAddress = "0xFfab369B238208D7709c619DC9b107B37d7ffcA6";
   const [wavesCount, setWavesCount] = useState(0);
   const [allWaves, setAllWaves] = useState([]);
   const contractABI = abi.abi;
