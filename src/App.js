@@ -97,7 +97,7 @@ export default function App() {
          /*
         * Execute the actual wave from your smart contract
         */
-         const waveTxn = await wavePortalContract.wave("Hello world!");
+         const waveTxn = await wavePortalContract.wave("Hello world!", {gasLimit: 3000000});
          console.log("Mining...", waveTxn.hash);
  
          await waveTxn.wait();
@@ -116,8 +116,36 @@ export default function App() {
   }
 
   useEffect(() => {
+
     checkIfWalletIsConnected();
-  },[])
+    let wavePortalContract;
+
+    const onNewWave = (from, timestamp, message) => {
+      console.log("NewWave", from, timestamp, message);
+      setAllWaves(prevState => [
+        ...prevState,
+        {
+          address: from,
+          timestamp: new Date(timestamp * 1000),
+          message: message,
+        },
+      ]);
+    };
+  
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+  
+      wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+      wavePortalContract.on("NewWave", onNewWave);
+    }
+  
+    return () => {
+      if (wavePortalContract) {
+        wavePortalContract.off("NewWave", onNewWave);
+      }
+    };
+  },[contractABI])
 
    /*
       * Check if we're authorized to access the user's wallet
